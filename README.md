@@ -1,5 +1,8 @@
 how to run the project?
 clone the repository
+```bash
+git clone https://github.com/faysalhassantorjo/MySoftTakeTask.git
+```
 run 
 ```bash
 docker compose build
@@ -8,7 +11,7 @@ docker compose build
 docker compose up
 ```
 
-then open http://127.0.0.1:8000 in your browser
+Then open http://127.0.0.1:8000 in your browser
 
 Guidline
 1. http://127.0.0.1:8000/api/create-products/
