@@ -31,17 +31,17 @@ Guidline
         - sort: newest, highest value
         - cursor pagination
     
-    ![alt text](image.png)
+    ![alt text](image/filtering.png)
 
-5. http://127.0.0.1:8000/api/order/<int:pk>/
-    - GET /api/orders/<int:pk>/ updates order
+5. http://127.0.0.1:8000/api/order/1/
+    - GET /api/orders/1/ updates order
     - you can update order status but only if the current status is allowed to transition to the new status
 
-    ![alt text](image-1.png)
+    ![alt text](image/status.png)
 
 6. execute the `chaostest.py` file to test the concurrency
     - You will see the result in the terminal
-    ![alt text](image-2.png)
+    ![alt text](image/test.png)
 
 
 
@@ -69,7 +69,7 @@ Guidline
     outputs = result.get()
     ```
   to send the requests parallelly i used the group function and got the result at once
-    [here is the picture]
+    ![alt text](image/test.png)
     
     
 
@@ -97,15 +97,40 @@ Task 5:
     - for the audit log i used signals and manually created the audit log
 
 
-Task 6:
-  1. crash recovery after reservation
-    - No data missmatch due to atomic transaction, all or nothing (rollback)
-    - Store reservation in persistant db so that if server crash after recovery the data are safe and 
- 
 
-  3. cleanup strategy + frequency
-    - i am using celery beat to cleanup the reservation after 10 minutes
-   
-  4. multi-warehouse design choices
-     will cerate multiple Werehouse. 
+
+## Diagram
+enhance system diagram
+![alt text](image/diagram.png)
+
+Task 6:
+  1. Stock reservation is handled inside an atomic database transaction to ensure all-or-nothing behavior and avoid partial updates. Once a reservation is created, it is stored in a persistent database with an expiration time. If the server crashes after reservation but before order confirmation, the reservation remains safe in the database. A background cleanup process releases expired reservations, restoring stock automatically without manual intervention.
+
+    Trade-offs:
+    - Reservations may temporarily reduce available stock until expiration.
+    - Recovery is time-based, so stock is not immediately released after a crash.
+    - Requires a reliable background worker to run cleanup tasks.
+
+  2. cleanup strategy + frequency
+    Expired reservations are cleaned up using Celery Beat, which periodically scans for reservations older than 10 minutes and releases the reserved stock back to available stock. This approach ensures recovery even if the request flow is interrupted or the web server crashes.
+
+    Trade-offs:
+    - Cleanup is eventually consistent, not real-time.
+    - Short expiration improves availability but risks premature release; longer expiration reduces stock availability.
+
+  3. multi-warehouse design choices
+    To support multiple warehouses, stock would be tracked per warehouse instead of globally. Each product would have warehouse-specific stock records, and reservations would lock stock at the warehouse level. This allows localized inventory control and prevents contention across warehouses.
+
+    Trade-offs:
+    - Increased schema complexity.
+    - More complex reservation logic.
+    - Better scalability and isolation for large systems.
+
+  4. what, where, invalidation
+    Frequently accessed read-heavy data such as product availability can be cached in Redis to reduce database load. Cache entries are updated or invalidated whenever stock changes due to reservation creation, expiration, or order confirmation.
+
+    Trade-offs:
+    - Cache invalidation increases complexity.
+    - Risk of stale data if invalidation fails.
+
     

@@ -52,6 +52,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'base.middleware.request_id.RequestIDMiddleware',
 ]
 
 ROOT_URLCONF = 'project.urls'
@@ -107,6 +108,14 @@ CELERY_BEAT_SCHEDULE = {
         'task': 'base.tasks.reservation_cleanup',
         'schedule': crontab(hour='*/1'),
     },
+}
+
+REST_FRAMEWORK = {
+    "DEFAULT_RENDERER_CLASSES": (
+        "base.renderers.RequestIDJSONRenderer",
+        "rest_framework.renderers.JSONRenderer",
+        "rest_framework.renderers.BrowsableAPIRenderer",
+    )
 }
 
 
