@@ -32,7 +32,7 @@ class ReservationSerializer(serializers.ModelSerializer):
     #  Reserve stock using DB lock (select_for_update) + transaction.atomic
     def create(self, validated_data):
         with transaction.atomic():
-            product = validated_data['product'].select_for_update()
+            product = Product.objects.select_for_update().get(id=validated_data['product'].id)
             quantity = validated_data['quantity']
 
             if product.available_stock < quantity:
@@ -98,3 +98,8 @@ class OrderFilter(filters.FilterSet):
             total=Sum(F('items__quantity') * F('items__product__price'))
         ).filter(total__lte=value)
 
+
+class AuditLogSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AuditLog
+        fields = '__all__'

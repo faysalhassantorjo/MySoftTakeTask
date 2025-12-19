@@ -5,10 +5,10 @@ git clone https://github.com/faysalhassantorjo/MySoftTakeTask.git
 ```
 run 
 ```bash
+cd MySoftTakeTask
 docker compose build
 ```
 ```bash
-cd MySoftTakeTask
 docker compose up
 ```
 
@@ -23,13 +23,16 @@ Guidline
         - reserved_stock using `Transaction`
         - used celery `background` task to update reservation after 10 minute - it will update status as `expired` and restore the product stock
     - implemented `celery-beat` for reservation cleanup - preodic
+    
+3. http://127.0.0.1:8000/api/reservation/<uuid:pk>/
+    - GET /api/reservations/<uuid:pk>/ retrieves a specific reservation
 
-3. http://127.0.0.1:8000/api/create-order/
+4. http://127.0.0.1:8000/api/create-order/
     - POST /api/orders/ creates order
     - you can also create Order Item
         -  crate orderItem (here orderitem price and quantity just for the demo for Sorting and filtering Purposes)
 
-4. http://127.0.0.1:8000/api/order-list/
+5. http://127.0.0.1:8000/api/order-list/
     - GET /api/orders/ must support:
         - filter: date range, status, min/max total
         - sort: newest, highest value
@@ -37,16 +40,18 @@ Guidline
     
     ![alt text](image/filtering.png)
 
-5. http://127.0.0.1:8000/api/order/1/
+6. http://127.0.0.1:8000/api/order/1/
     - GET /api/orders/1/ updates order
     - you can update order status but only if the current status is allowed to transition to the new status
 
     ![alt text](image/status.png)
 
-6. execute the `chaostest.py` file to test the concurrency
-    - You will see the result in the terminal
+7. execute the `chaostest.py` file to test the concurrency
+    - You will see the result in the terminal  (execute in docker web container's terminal)
     ![alt text](image/test.png)
 
+8. http://127.0.0.1:8000/api/audit-log/
+    - GET /api/audit-log/ lists all audit logs
 
 
 ## Task 1

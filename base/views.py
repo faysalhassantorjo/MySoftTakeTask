@@ -11,7 +11,11 @@ class CreateProductsView(generics.ListCreateAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer    
 
-class ReservationCreateView(generics.CreateAPIView):
+class ReservationCreateView(generics.ListCreateAPIView):
+    queryset = Reservation.objects.all()
+    serializer_class = ReservationSerializer
+
+class RetrieveReservationView(generics.RetrieveAPIView):
     queryset = Reservation.objects.all()
     serializer_class = ReservationSerializer
 
@@ -103,3 +107,9 @@ class OrderListView(generics.ListAPIView):
 
     def get_queryset(self):
       return Order.objects.select_related('user').prefetch_related('items__product').all()
+
+from .models import AuditLog
+from .serializers import AuditLogSerializer
+class AuditLogView(generics.ListAPIView):
+    queryset = AuditLog.objects.all()
+    serializer_class = AuditLogSerializer

@@ -19,22 +19,48 @@ def audit_log(actor, action, obj_id, obj_type, old=None, new=None):
     except Exception as e:
         print(e)
 
+from django.db import transaction
+from django.utils import timezone
+from .models import Reservation, Product
+
 @shared_task
 def update_reservation(reservation_id):
     from .serializers import ReservationSerializer
 
-    reservation = Reservation.objects.filter(id=reservation_id)
+    with transaction.atomic():
 
-    old_reservation = ReservationSerializer(reservation).data
-    reservation.update(is_active=False)
-    new_reservation = ReservationSerializer(reservation).data
-    product = reservation.product
-    product.available_stock += reservation.quantity
-    product.reserved_stock -= reservation.quantity
-    product.save()
+        reservation = (
+            Reservation.objects
+            .select_for_update()
+            .select_related('product')
+            .get(id=reservation_id, is_active=True)
+        )
 
-    audit_log(actor="System", action="Reservation Updated", obj_id=reservation_id, obj_type="Reservation", old=old_reservation, new=new_reservation)
-    return {'reservation_id': reservation_id}
+        old_data = ReservationSerializer(reservation).data
+
+        product = reservation.product
+
+        # restore stock
+        product.available_stock += reservation.quantity
+        product.reserved_stock -= reservation.quantity
+        product.save()
+
+        reservation.is_active = False
+        reservation.save()
+
+        new_data = ReservationSerializer(reservation).data
+
+        audit_log(
+            actor="System",
+            action="Reservation Expired",
+            obj_id=reservation.id,
+            obj_type="Reservation",
+            old=old_data,
+            new=new_data
+        )
+
+    return {"reservation_id": reservation_id}
+
 
 @shared_task
 def reservation_cleanup():
