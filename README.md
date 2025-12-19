@@ -8,6 +8,7 @@ run
 docker compose build
 ```
 ```bash
+cd MySoftTakeTask
 docker compose up
 ```
 

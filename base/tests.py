@@ -11,9 +11,6 @@ from base.services.order_service import change_order_status
 # from base.state_machine import validate_transition
 
 
-# -----------------------------
-# Task 1: Inventory Reservation
-# -----------------------------
 
 class ReservationTests(TestCase):
 
@@ -55,10 +52,6 @@ class ReservationTests(TestCase):
         )
 
 
-# -----------------------------
-# Task 1: Reservation Expiry
-# -----------------------------
-
 class ReservationExpiryTests(TestCase):
 
     def test_expired_reservation_releases_stock(self):
@@ -76,7 +69,6 @@ class ReservationExpiryTests(TestCase):
             is_active=True,
         )
 
-        # Simulate cleanup logic
         product.available_stock += reservation.quantity
         product.reserved_stock -= reservation.quantity
         product.save()
@@ -89,9 +81,7 @@ class ReservationExpiryTests(TestCase):
         self.assertEqual(product.reserved_stock, 0)
 
 
-# -----------------------------
-# Task 2: Order State Machine
-# -----------------------------
+
 
 class OrderStateMachineTests(TestCase):
 
@@ -119,83 +109,3 @@ class OrderStateMachineTests(TestCase):
             change_order_status(order.id, "processing")
 
 
-# -----------------------------
-# Task 3: Concurrency Chaos Test
-# -----------------------------
-
-# class ConcurrencyChaosTests(TransactionTestCase):
-#     """
-#     Uses TransactionTestCase because TestCase wraps everything
-#     in a single transaction (bad for concurrency testing).
-#     """
-
-#     reset_sequences = True
-
-#     def test_concurrent_reservations(self):
-#         product = Product.objects.create(
-#             name="Chaos Product",
-#             total_stock=5,
-#             available_stock=5,
-#             reserved_stock=0,
-#         )
-
-#         def attempt():
-#             try:
-#                 reserve_stock(product.id, 1)
-#                 return "SUCCESS"
-#             except Exception:
-#                 return "FAILURE"
-
-#         with ThreadPoolExecutor(max_workers=10) as executor:
-#             results = list(executor.map(lambda _: attempt(), range(50)))
-
-#         product.refresh_from_db()
-
-#         self.assertEqual(results.count("SUCCESS"), 5)
-#         self.assertEqual(results.count("FAILURE"), 45)
-#         self.assertEqual(product.available_stock, 0)
-#         self.assertEqual(product.reserved_stock, 5)
-
-
-# -----------------------------
-# Task 4: Performance Safeguards
-# -----------------------------
-
-# class PerformanceTests(TestCase):
-
-#     def test_orders_query_count_is_low(self):
-#         for _ in range(5):
-#             Order.objects.create(status="pending")
-
-#         with CaptureQueriesContext(connection) as queries:
-#             list(Order.objects.select_related())
-
-#         self.assertLessEqual(len(queries), 2)
-
-
-# -----------------------------
-# Task 5: Audit Logging
-# -----------------------------
-
-# class AuditLogTests(TestCase):
-
-#     def test_audit_log_created_on_reservation(self):
-#         product = Product.objects.create(
-#             name="Audit Product",
-#             total_stock=5,
-#             available_stock=5,
-#             reserved_stock=0,
-#         )
-
-#         reserve_stock(product.id, 1)
-
-#         self.assertTrue(
-#             AuditLog.objects.filter(action="RESERVATION_CREATED").exists()
-#         )
-
-#     def test_audit_log_created_on_status_change(self):
-#         order = Order.objects.create(status="pending")
-#         change_order_status(order, "confirmed")
-
-#         log = AuditLog.objects.last()
-#         self.assertEqual(log.action, "ORDER_STATUS_CHANGED")

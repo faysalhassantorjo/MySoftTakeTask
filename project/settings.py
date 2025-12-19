@@ -102,11 +102,11 @@ CELERY_RESULT_BACKEND = 'redis://redis:6379/0'
 
 from celery.schedules import crontab
 
-#every one minute
+#every 10 minutes
 CELERY_BEAT_SCHEDULE = {
     'reservation-cleanup': {
         'task': 'base.tasks.reservation_cleanup',
-        'schedule': crontab(hour='*/1'),
+        'schedule': crontab(minute='*/10'),
     },
 }
 
