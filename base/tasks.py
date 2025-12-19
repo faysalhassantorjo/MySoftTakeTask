@@ -33,8 +33,11 @@ def update_reservation(reservation_id):
             Reservation.objects
             .select_for_update()
             .select_related('product')
-            .get(id=reservation_id, is_active=True)
+            .filter(id=reservation_id).first()
         )
+
+        if not reservation:
+            return {"reservation_id": reservation_id, "status": "Reservation Not Found"}
 
         old_data = ReservationSerializer(reservation).data
 
@@ -59,7 +62,7 @@ def update_reservation(reservation_id):
             new=new_data
         )
 
-    return {"reservation_id": reservation_id}
+    return {"reservation_id": reservation_id, "status": "Reservation Updated"}
 
 
 @shared_task
